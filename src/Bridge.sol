@@ -10,6 +10,7 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
     uint256 public currId;
     IERC20 public sdai;
     mapping(uint256 => WithdrawalRequest) public withdrawalQueue;
+    mapping(address => bool) public allowedWithdrawers;
     uint256 public nextWithdrawalId;
 
     struct WithdrawalRequest {
@@ -40,6 +41,7 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
     constructor(address _sdai) Ownable(msg.sender) {
         require(_sdai != address(0), "Invalid address");
         sdai = IERC20(_sdai);
+        allowedWithdrawers[msg.sender] = true;
     }
 
     function deposit(
@@ -54,9 +56,17 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         emit Bridge(currId++, amount, msg.sender, toAddress);
     }
 
-    function withdraw(uint256 amount) public nonReentrant {
-        require(amount > 0, "Cannot withdraw zero");
+    function setAllowedWithdrawer(
+        address withdrawer,
+        bool allowed
+    ) public onlyOwner {
+        allowedWithdrawers[withdrawer] = allowed;
+    }
 
+    function withdraw(uint256 amount) public nonReentrant {
+        require(allowedWithdrawers[msg.sender], "Not allowed to withdraw");
+        require(amount > 0, "Cannot withdraw zero");
+        
         withdrawalQueue[nextWithdrawalId] = WithdrawalRequest({
             amount: amount,
             requester: msg.sender,
