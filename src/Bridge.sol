@@ -39,10 +39,14 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         address to
     );
 
-    constructor(address _sdai) Ownable(msg.sender) {
+    constructor(address _sdai, address[] memory _allowedWithdrawers) Ownable(msg.sender) {
         require(_sdai != address(0), "Invalid address");
         sdai = IERC20(_sdai);
         allowedWithdrawers[msg.sender] = true;
+
+        for (uint256 i = 0; i < _allowedWithdrawers.length; i++) {
+            allowedWithdrawers[_allowedWithdrawers[i]] = true;
+        }
     }
 
     function deposit(
