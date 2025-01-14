@@ -16,6 +16,7 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
     struct WithdrawalRequest {
         uint256 amount;
         address requester;
+        address to;
         bool approved;
     }
 
@@ -29,13 +30,15 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
     event WithdrawalRequested(
         uint256 indexed id,
         uint256 amount,
-        address requester
+        address requester,
+        address to
     );
 
     event WithdrawalApproved(
         uint256 indexed id,
         uint256 amount,
-        address requester
+        address requester,
+        address to
     );
 
     constructor(address _sdai) Ownable(msg.sender) {
@@ -63,17 +66,18 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         allowedWithdrawers[withdrawer] = allowed;
     }
 
-    function withdraw(uint256 amount) public nonReentrant {
+    function withdraw(uint256 amount, address to) public nonReentrant {
         require(allowedWithdrawers[msg.sender], "Not allowed to withdraw");
         require(amount > 0, "Cannot withdraw zero");
         
         withdrawalQueue[nextWithdrawalId] = WithdrawalRequest({
             amount: amount,
             requester: msg.sender,
+            to: to,
             approved: false
         });
 
-        emit WithdrawalRequested(nextWithdrawalId, amount, msg.sender);
+        emit WithdrawalRequested(nextWithdrawalId, amount, msg.sender, to);
         nextWithdrawalId++;
     }
 
@@ -83,8 +87,8 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         require(!request.approved, "Already approved");
 
         request.approved = true;
-        sdai.safeTransfer(request.requester, request.amount);
+        sdai.safeTransfer(request.to, request.amount);
 
-        emit WithdrawalApproved(id, request.amount, request.requester);
+        emit WithdrawalApproved(id, request.amount, request.requester, request.to);
     }
 }
