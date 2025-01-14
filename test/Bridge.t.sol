@@ -28,7 +28,7 @@ contract BridgeTest is Test {
 
     function setUp() public {
         token = new MockERC20();
-        bridge = new KlyraBridge(address(token));
+        bridge = new KlyraBridge(address(token), new address[](0));
         user = makeAddr("user");
 
         // Mint tokens to user
@@ -39,14 +39,14 @@ contract BridgeTest is Test {
         token.approve(address(bridge), type(uint256).max);
     }
 
-    function test_Constructor() public {
+    function test_Constructor() view public {
         assertEq(address(bridge.sdai()), address(token));
         assertEq(bridge.currId(), 0);
     }
 
     function test_RevertIf_ZeroAddressInConstructor() public {
         vm.expectRevert("Invalid address");
-        new KlyraBridge(address(0));
+        new KlyraBridge(address(0), new address[](0));
     }
 
     function test_Deposit() public {
