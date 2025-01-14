@@ -1,7 +1,9 @@
 pragma solidity ^0.8.0;
 import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-contract Bridge is ReentrancyGuard {
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
+contract Bridge is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
     address public owner;
@@ -36,16 +38,9 @@ contract Bridge is ReentrancyGuard {
         address requester
     );
 
-
-    constructor(address _sdai) {
+    constructor(address _sdai) Ownable(msg.sender) {
         require(_sdai != address(0), "Invalid address");
         sdai = IERC20(_sdai);
-        owner = msg.sender;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not the contract owner");
-        _;
     }
 
     function deposit(
