@@ -16,7 +16,6 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         uint256 amount;
         address requester;
         address to;
-        bool approved;
     }
 
     event Bridge(
@@ -72,8 +71,7 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         withdrawalQueue[nextWithdrawalId] = WithdrawalRequest({
             amount: amount,
             requester: msg.sender,
-            to: to,
-            approved: false
+            to: to
         });
 
         emit WithdrawalRequested(nextWithdrawalId, amount, msg.sender, to);
@@ -83,10 +81,10 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
     function approveWithdrawal(uint256 id) public onlyOwner {
         require(withdrawalQueue[id].amount > 0, "Invalid withdrawal ID");
         WithdrawalRequest storage request = withdrawalQueue[id];
-        require(!request.approved, "Already approved");
 
-        request.approved = true;
         sdai.safeTransfer(request.to, request.amount);
+
+        delete withdrawalQueue[id];
 
         emit WithdrawalApproved(id, request.amount, request.requester, request.to);
     }
