@@ -6,7 +6,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract KlyraBridge is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
-    address public owner;
     uint256 public currId;
     IERC20 public sdai;
     mapping(uint256 => WithdrawalRequest) public withdrawalQueue;
