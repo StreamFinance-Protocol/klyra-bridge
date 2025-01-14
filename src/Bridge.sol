@@ -1,23 +1,18 @@
 pragma solidity ^0.8.0;
 import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-<<<<<<< HEAD
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Bridge is ReentrancyGuard, Ownable {
-=======
-contract KlyraBridge is ReentrancyGuard {
->>>>>>> a34ce28 ([BRIDGE-2] Testing: init deposit tests)
+contract KlyraBridge is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
     address public owner;
     uint256 public currId;
     IERC20 public sdai;
-    WithdrawalRequest[] public withdrawalQueue;
+    mapping(uint256 => WithdrawalRequest) public withdrawalQueue;
     uint256 public nextWithdrawalId;
 
     struct WithdrawalRequest {
-        uint256 id;
         uint256 amount;
         address requester;
         bool approved;
@@ -62,19 +57,18 @@ contract KlyraBridge is ReentrancyGuard {
     function withdraw(uint256 amount) public nonReentrant {
         require(amount > 0, "Cannot withdraw zero");
 
-        withdrawalQueue.push(WithdrawalRequest({
-            id: nextWithdrawalId,
+        withdrawalQueue[nextWithdrawalId] = WithdrawalRequest({
             amount: amount,
             requester: msg.sender,
             approved: false
-        }));
+        });
 
         emit WithdrawalRequested(nextWithdrawalId, amount, msg.sender);
         nextWithdrawalId++;
     }
 
     function approveWithdrawal(uint256 id) public onlyOwner {
-        require(id < withdrawalQueue.length, "Invalid withdrawal ID");
+        require(withdrawalQueue[id].amount > 0, "Invalid withdrawal ID");
         WithdrawalRequest storage request = withdrawalQueue[id];
         require(!request.approved, "Already approved");
 
