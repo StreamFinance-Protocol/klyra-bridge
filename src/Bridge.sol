@@ -79,8 +79,8 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
     }
 
     function approveWithdrawal(uint256 id) public onlyOwner {
-        require(withdrawalQueue[id].amount > 0, "Invalid withdrawal ID");
-        WithdrawalRequest storage request = withdrawalQueue[id];
+        WithdrawalRequest memory request = withdrawalQueue[id];
+        require(request.amount > 0, "Invalid withdrawal ID");
 
         sdai.safeTransfer(request.to, request.amount);
 
