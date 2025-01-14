@@ -7,6 +7,15 @@ contract Bridge is ReentrancyGuard {
     address public owner;
     uint256 public currId;
     IERC20 public sdai;
+    WithdrawalRequest[] public withdrawalQueue;
+    uint256 public nextWithdrawalId;
+
+    struct WithdrawalRequest {
+        uint256 id;
+        uint256 amount;
+        address requester;
+        bool approved;
+    }
 
     event Bridge(
         uint256 indexed id,
@@ -14,6 +23,19 @@ contract Bridge is ReentrancyGuard {
         address from,
         bytes toAddress
     );
+
+    event WithdrawalRequested(
+        uint256 indexed id,
+        uint256 amount,
+        address requester
+    );
+
+    event WithdrawalApproved(
+        uint256 indexed id,
+        uint256 amount,
+        address requester
+    );
+
 
     constructor(address _sdai) {
         require(_sdai != address(0), "Invalid address");
@@ -36,5 +58,30 @@ contract Bridge is ReentrancyGuard {
         sdai.safeTransferFrom(msg.sender, address(this), amount);
 
         emit Bridge(currId++, amount, msg.sender, toAddress);
+    }
+
+    function withdraw(uint256 amount) public nonReentrant {
+        require(amount > 0, "Cannot withdraw zero");
+
+        withdrawalQueue.push(WithdrawalRequest({
+            id: nextWithdrawalId,
+            amount: amount,
+            requester: msg.sender,
+            approved: false
+        }));
+
+        emit WithdrawalRequested(nextWithdrawalId, amount, msg.sender);
+        nextWithdrawalId++;
+    }
+
+    function approveWithdrawal(uint256 id) public onlyOwner {
+        require(id < withdrawalQueue.length, "Invalid withdrawal ID");
+        WithdrawalRequest storage request = withdrawalQueue[id];
+        require(!request.approved, "Already approved");
+
+        request.approved = true;
+        sdai.safeTransfer(request.requester, request.amount);
+
+        emit WithdrawalApproved(id, request.amount, request.requester);
     }
 }
