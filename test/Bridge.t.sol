@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {Test, console2} from "forge-std/Test.sol";
 import {KlyraBridge} from "../src/Bridge.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {Test, console2} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 
 contract MockERC20 is ERC20 {
     constructor() ERC20("Mock Token", "MTK") {}
@@ -147,38 +147,57 @@ contract BridgeTest is Test {
         address to
     );
 
-    function test_RequestWithdrawal() public {
-        address withdrawer = makeAddr("withdrawer");
-        uint256 amount = 1000000;
-        address to = makeAddr("recipient");
+    function test_RequestWithdrawals() public {
 
-        bridge.setAllowedWithdrawer(withdrawer, true);
+        /* Test 0: Test single withdrawal request */
 
-        vm.prank(withdrawer);
+        address withdrawer0 = makeAddr("withdrawer0");
+        uint256 amount0 = 2000000;
+        address to0 = makeAddr("recipient0");
+
+        bridge.setAllowedWithdrawer(withdrawer0, true);
+
+        KlyraBridge.WithdrawalRequest[] memory requests0 = new KlyraBridge.WithdrawalRequest[](1);
+        requests0[0] = KlyraBridge.WithdrawalRequest({amount: amount0, to: to0});
+
+        vm.prank(withdrawer0);
         vm.expectEmit(true, true, true, true);
-        emit WithdrawalRequested(0, amount, withdrawer, to);
-        bridge.requestWithdrawal(amount, to);
+        emit WithdrawalRequested(0, amount0, withdrawer0, to0);
+        bridge.requestWithdrawals(requests0);
 
-        (uint256 storedAmount, address requester, address storedTo) = bridge.withdrawalQueue(0);
-        assertEq(storedAmount, amount);
-        assertEq(requester, withdrawer);
-        assertEq(storedTo, to);
+        (uint256 storedAmount0, address storedTo0) = bridge.withdrawalQueue(0);
+        assertEq(storedAmount0, amount0);
+        assertEq(storedTo0, to0);
 
-        withdrawer = makeAddr("withdrawer2");
-        amount = 2000000;
-        to = makeAddr("recipient2");
+        /* Test 1: Test multiple withdrawal requests */
 
-        bridge.setAllowedWithdrawer(withdrawer, true);
+        address withdrawer1 = makeAddr("withdrawer1");
+        uint256 amount1 = 1000000;
+        address to1 = makeAddr("recipient1");
+        address to2 = makeAddr("recipient2");
+        address to3 = makeAddr("recipient3");
 
-        vm.prank(withdrawer);
+        bridge.setAllowedWithdrawer(withdrawer1, true);
+
+        KlyraBridge.WithdrawalRequest[] memory requests1 = new KlyraBridge.WithdrawalRequest[](3);
+        requests1[0] = KlyraBridge.WithdrawalRequest({amount: amount1, to: to1});
+        requests1[1] = KlyraBridge.WithdrawalRequest({amount: amount1, to: to2});
+        requests1[2] = KlyraBridge.WithdrawalRequest({amount: amount1, to: to3});
+
+        vm.prank(withdrawer1);
         vm.expectEmit(true, true, true, true);
-        emit WithdrawalRequested(1, amount, withdrawer, to);
-        bridge.requestWithdrawal(amount, to);
+        emit WithdrawalRequested(1, amount1, withdrawer1, to1);
+        emit WithdrawalRequested(2, amount1, withdrawer1, to2);
+        emit WithdrawalRequested(3, amount1, withdrawer1, to3);
+        bridge.requestWithdrawals(requests1);
 
-        (storedAmount, requester, storedTo) = bridge.withdrawalQueue(1);
-        assertEq(storedAmount, amount);
-        assertEq(requester, withdrawer);
-        assertEq(storedTo, to);
+        assertEq(bridge.nextWithdrawalId(), 4);
+
+        for (uint256 i = 1; i < requests1.length + 1; i++) {
+            (uint256 storedAmount1, address storedTo1) = bridge.withdrawalQueue(i);
+            assertEq(storedAmount1, amount1);
+            assertEq(storedTo1, requests1[i - 1].to);
+        }
     }
 
     function test_RevertIf_NotAllowedToRequestWithdrawal() public {
@@ -188,9 +207,12 @@ contract BridgeTest is Test {
 
         assertFalse(bridge.allowedWithdrawers(withdrawer));
 
+        KlyraBridge.WithdrawalRequest[] memory requests = new KlyraBridge.WithdrawalRequest[](1);
+        requests[0] = KlyraBridge.WithdrawalRequest({amount: amount, to: to});
+
         vm.prank(withdrawer);
         vm.expectRevert("Not allowed to withdraw");
-        bridge.requestWithdrawal(amount, to);
+        bridge.requestWithdrawals(requests);
     }
 
     function test_RevertIf_ZeroAmountRequestWithdrawal() public {
@@ -198,9 +220,38 @@ contract BridgeTest is Test {
         address to = makeAddr("recipient");
         bridge.setAllowedWithdrawer(withdrawer, true);
 
+        KlyraBridge.WithdrawalRequest[] memory requests = new KlyraBridge.WithdrawalRequest[](1);
+        requests[0] = KlyraBridge.WithdrawalRequest({amount: 0, to: to});
+
         vm.prank(withdrawer);
         vm.expectRevert("Cannot withdraw zero");
-        bridge.requestWithdrawal(0, to);
+        bridge.requestWithdrawals(requests);
+    }
+
+    function test_RevertIf_ZeroAddressRequestWithdrawal() public {
+        address withdrawer = makeAddr("withdrawer");
+        address to = address(0);
+        bridge.setAllowedWithdrawer(withdrawer, true);
+
+        KlyraBridge.WithdrawalRequest[] memory requests = new KlyraBridge.WithdrawalRequest[](1);
+        requests[0] = KlyraBridge.WithdrawalRequest({amount: 1000000, to: to});
+
+        vm.prank(withdrawer);
+        vm.expectRevert("Zero address not allowed");
+        bridge.requestWithdrawals(requests);
+    }
+
+    function test_RevertIf_BridgeContractRequestWithdrawal() public {
+        address withdrawer = makeAddr("withdrawer");
+        address to = address(bridge);
+        bridge.setAllowedWithdrawer(withdrawer, true);
+
+        KlyraBridge.WithdrawalRequest[] memory requests = new KlyraBridge.WithdrawalRequest[](1);
+        requests[0] = KlyraBridge.WithdrawalRequest({amount: 1000000, to: to});
+
+        vm.prank(withdrawer);
+        vm.expectRevert("Cannot withdraw to bridge contract");
+        bridge.requestWithdrawals(requests);
     }
 
     function testFuzz_RequestWithdrawal(uint256 amount, address to) public {
@@ -210,20 +261,25 @@ contract BridgeTest is Test {
 
         vm.assume(amount > 0);
         vm.assume(to != address(0));
+        vm.assume(to != address(bridge));
+        vm.assume(to != address(this));
+
+        KlyraBridge.WithdrawalRequest[] memory requests = new KlyraBridge.WithdrawalRequest[](1);
+        requests[0] = KlyraBridge.WithdrawalRequest({amount: amount, to: to});
 
         vm.prank(withdrawer);
-        bridge.requestWithdrawal(amount, to);
+        vm.expectEmit(true, true, true, true);
+        emit WithdrawalRequested(0, amount, withdrawer, to);
+        bridge.requestWithdrawals(requests);
 
-        (uint256 storedAmount, address requester, address storedTo) = bridge.withdrawalQueue(bridge.nextWithdrawalId() - 1);
+        (uint256 storedAmount, address storedTo) = bridge.withdrawalQueue(0);
         assertEq(storedAmount, amount);
-        assertEq(requester, withdrawer);
         assertEq(storedTo, to);
     }
 
     event WithdrawalApproved(
         uint256 indexed id,
         uint256 amount,
-        address requester,
         address to
     );
 
@@ -234,25 +290,33 @@ contract BridgeTest is Test {
 
         token.mint(address(bridge), amount);
 
+        KlyraBridge.WithdrawalRequest[] memory requests = new KlyraBridge.WithdrawalRequest[](1);
+        requests[0] = KlyraBridge.WithdrawalRequest({amount: amount, to: to});
+
         bridge.setAllowedWithdrawer(withdrawer, true);
         vm.prank(withdrawer);
-        bridge.requestWithdrawal(amount, to);
+        bridge.requestWithdrawals(requests);
+
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = 0;
 
         vm.expectEmit(true, true, true, true);
-        emit WithdrawalApproved(0, amount, withdrawer, to);
-        bridge.approveWithdrawal(0);
+        emit WithdrawalApproved(0, amount, to);
+        bridge.approveWithdrawals(ids);
 
-        (uint256 storedAmount, address requester, address storedTo) = bridge.withdrawalQueue(0);
+        (uint256 storedAmount, address storedTo) = bridge.withdrawalQueue(0);
         assertEq(storedAmount, 0);
-        assertEq(requester, address(0));
         assertEq(storedTo, address(0));
 
         assertEq(token.balanceOf(to), amount);
     }
 
     function test_RevertIf_InvalidWithdrawalID() public {
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = 0;
+
         vm.expectRevert("Invalid withdrawal ID");
-        bridge.approveWithdrawal(0);
+        bridge.approveWithdrawals(ids);
     }
 
     function testFuzz_ApproveWithdrawal(uint256 amount, address to) public {
@@ -260,25 +324,36 @@ contract BridgeTest is Test {
         bridge.setAllowedWithdrawer(withdrawer, true);
 
         vm.assume(to != address(0));
+        vm.assume(to != address(bridge));
+        vm.assume(to != address(this));
         vm.assume(amount > 0);
         vm.assume(amount < INITIAL_BALANCE);
 
         token.mint(address(bridge), amount);
 
         uint256 balanceBefore = token.balanceOf(to);
+        uint256 expectedBalance = balanceBefore + amount;
+        assertEq(expectedBalance, balanceBefore + amount);
+        assertEq(balanceBefore, token.balanceOf(to));
 
+        KlyraBridge.WithdrawalRequest[] memory requests = new KlyraBridge.WithdrawalRequest[](1);
+        requests[0] = KlyraBridge.WithdrawalRequest({amount: amount, to: to});
         vm.prank(withdrawer);
-        bridge.requestWithdrawal(amount, to);
+        bridge.requestWithdrawals(requests);
 
+        assertEq(bridge.nextWithdrawalId(), 1);
+
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = 0;
         vm.expectEmit(true, true, true, true);
-        emit WithdrawalApproved(0, amount, withdrawer, to);
-        bridge.approveWithdrawal(0);
+        emit WithdrawalApproved(0, amount, to);
+        bridge.approveWithdrawals(ids);
 
-        (uint256 storedAmount, address requester, address storedTo) = bridge.withdrawalQueue(0);
+        (uint256 storedAmount, address storedTo) = bridge.withdrawalQueue(0);
         assertEq(storedAmount, 0);
-        assertEq(requester, address(0));
         assertEq(storedTo, address(0));
 
-        assertEq(token.balanceOf(to), amount + balanceBefore);
+        uint256 balanceAfter = token.balanceOf(to);
+        assertEq(balanceAfter, expectedBalance);
     }
 }
