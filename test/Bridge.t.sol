@@ -265,6 +265,8 @@ contract BridgeTest is Test {
 
         token.mint(address(bridge), amount);
 
+        uint256 balanceBefore = token.balanceOf(to);
+
         vm.prank(withdrawer);
         bridge.requestWithdrawal(amount, to);
 
@@ -277,6 +279,6 @@ contract BridgeTest is Test {
         assertEq(requester, address(0));
         assertEq(storedTo, address(0));
 
-        assertEq(token.balanceOf(to), amount);
+        assertEq(token.balanceOf(to), amount + balanceBefore);
     }
 }
