@@ -14,7 +14,6 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
 
     struct WithdrawalRequest {
         uint256 amount;
-        address requester;
         address to;
     }
 
@@ -35,7 +34,6 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
     event WithdrawalApproved(
         uint256 indexed id,
         uint256 amount,
-        address requester,
         address to
     );
 
@@ -68,17 +66,23 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         allowedWithdrawers[withdrawer] = allowed;
     }
 
-    function requestWithdrawal(uint256 amount, address to) public nonReentrant {
-        require(allowedWithdrawers[msg.sender], "Not allowed to withdraw");
-        require(amount > 0, "Cannot withdraw zero");
-        
-        withdrawalQueue[nextWithdrawalId] = WithdrawalRequest({
-            amount: amount,
-            requester: msg.sender,
-            to: to
-        });
+    function requestWithdrawals(
+        WithdrawalRequest[] calldata requests
+    ) public nonReentrant {
+        for (uint256 i = 0; i < requests.length; i++) {
+            _requestWithdrawal(requests[i]);
+        }
+    }
 
-        emit WithdrawalRequested(nextWithdrawalId, amount, msg.sender, to);
+    function _requestWithdrawal(
+        WithdrawalRequest calldata request
+    ) internal {
+        require(allowedWithdrawers[msg.sender], "Not allowed to withdraw");
+        require(request.amount > 0, "Cannot withdraw zero");
+
+        withdrawalQueue[nextWithdrawalId] = request;
+
+        emit WithdrawalRequested(nextWithdrawalId, request.amount, msg.sender, request.to);
         nextWithdrawalId++;
     }
 
@@ -90,6 +94,6 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
 
         delete withdrawalQueue[id];
 
-        emit WithdrawalApproved(id, request.amount, request.requester, request.to);
+        emit WithdrawalApproved(id, request.amount, request.to);
     }
 }
