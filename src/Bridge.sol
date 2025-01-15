@@ -87,6 +87,8 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
     ) internal {
         require(allowedWithdrawers[msg.sender], "Not allowed to withdraw");
         require(request.amount > 0, "Cannot withdraw zero");
+        require(request.to != address(0), "Zero address not allowed");
+        require(request.to != address(this), "Cannot withdraw to bridge contract");
 
         withdrawalQueue[nextWithdrawalId] = request;
 
