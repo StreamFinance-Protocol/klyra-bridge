@@ -68,7 +68,7 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         allowedWithdrawers[withdrawer] = allowed;
     }
 
-    function withdraw(uint256 amount, address to) public nonReentrant {
+    function requestWithdrawal(uint256 amount, address to) public nonReentrant {
         require(allowedWithdrawers[msg.sender], "Not allowed to withdraw");
         require(amount > 0, "Cannot withdraw zero");
         

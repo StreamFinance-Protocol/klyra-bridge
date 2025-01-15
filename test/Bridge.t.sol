@@ -147,7 +147,7 @@ contract BridgeTest is Test {
         address to
     );
 
-    function test_Withdraw() public {
+    function test_RequestWithdrawal() public {
         address withdrawer = makeAddr("withdrawer");
         uint256 amount = 1000000;
         address to = makeAddr("recipient");
@@ -157,7 +157,7 @@ contract BridgeTest is Test {
         vm.prank(withdrawer);
         vm.expectEmit(true, true, true, true);
         emit WithdrawalRequested(0, amount, withdrawer, to);
-        bridge.withdraw(amount, to);
+        bridge.requestWithdrawal(amount, to);
 
         (uint256 storedAmount, address requester, address storedTo) = bridge.withdrawalQueue(0);
         assertEq(storedAmount, amount);
@@ -173,7 +173,7 @@ contract BridgeTest is Test {
         vm.prank(withdrawer);
         vm.expectEmit(true, true, true, true);
         emit WithdrawalRequested(1, amount, withdrawer, to);
-        bridge.withdraw(amount, to);
+        bridge.requestWithdrawal(amount, to);
 
         (storedAmount, requester, storedTo) = bridge.withdrawalQueue(1);
         assertEq(storedAmount, amount);
@@ -181,7 +181,7 @@ contract BridgeTest is Test {
         assertEq(storedTo, to);
     }
 
-    function test_RevertIf_NotAllowedToWithdraw() public {
+    function test_RevertIf_NotAllowedToRequestWithdrawal() public {
         address withdrawer = makeAddr("withdrawer");
         uint256 amount = 1000000;
         address to = makeAddr("recipient");
@@ -190,20 +190,20 @@ contract BridgeTest is Test {
 
         vm.prank(withdrawer);
         vm.expectRevert("Not allowed to withdraw");
-        bridge.withdraw(amount, to);
+        bridge.requestWithdrawal(amount, to);
     }
 
-    function test_RevertIf_ZeroAmountWithdraw() public {
+    function test_RevertIf_ZeroAmountRequestWithdrawal() public {
         address withdrawer = makeAddr("withdrawer");
         address to = makeAddr("recipient");
         bridge.setAllowedWithdrawer(withdrawer, true);
 
         vm.prank(withdrawer);
         vm.expectRevert("Cannot withdraw zero");
-        bridge.withdraw(0, to);
+        bridge.requestWithdrawal(0, to);
     }
 
-    function testFuzz_Withdraw(uint256 amount, address to) public {
+    function testFuzz_RequestWithdrawal(uint256 amount, address to) public {
         address withdrawer = makeAddr("withdrawer");
 
         bridge.setAllowedWithdrawer(withdrawer, true);
@@ -212,7 +212,7 @@ contract BridgeTest is Test {
         vm.assume(to != address(0));
 
         vm.prank(withdrawer);
-        bridge.withdraw(amount, to);
+        bridge.requestWithdrawal(amount, to);
 
         (uint256 storedAmount, address requester, address storedTo) = bridge.withdrawalQueue(bridge.nextWithdrawalId() - 1);
         assertEq(storedAmount, amount);
@@ -236,7 +236,7 @@ contract BridgeTest is Test {
 
         bridge.setAllowedWithdrawer(withdrawer, true);
         vm.prank(withdrawer);
-        bridge.withdraw(amount, to);
+        bridge.requestWithdrawal(amount, to);
 
         vm.expectEmit(true, true, true, true);
         emit WithdrawalApproved(0, amount, withdrawer, to);
@@ -266,7 +266,7 @@ contract BridgeTest is Test {
         token.mint(address(bridge), amount);
 
         vm.prank(withdrawer);
-        bridge.withdraw(amount, to);
+        bridge.requestWithdrawal(amount, to);
 
         vm.expectEmit(true, true, true, true);
         emit WithdrawalApproved(0, amount, withdrawer, to);
