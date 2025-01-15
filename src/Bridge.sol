@@ -74,6 +74,14 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         }
     }
 
+    function approveWithdrawals(
+        uint256[] calldata ids
+    ) public onlyOwner nonReentrant {
+        for (uint256 i = 0; i < ids.length; i++) {
+            _approveWithdrawal(ids[i]);
+        }
+    }
+
     function _requestWithdrawal(
         WithdrawalRequest calldata request
     ) internal {
@@ -86,7 +94,9 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         nextWithdrawalId++;
     }
 
-    function approveWithdrawal(uint256 id) public onlyOwner nonReentrant {
+    function _approveWithdrawal(
+        uint256 id
+    ) internal {
         WithdrawalRequest memory request = withdrawalQueue[id];
         require(request.amount > 0, "Invalid withdrawal ID");
 
