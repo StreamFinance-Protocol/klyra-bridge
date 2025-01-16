@@ -20,12 +20,7 @@ contract BridgeTest is Test {
     address public user;
     uint256 public constant INITIAL_BALANCE = 100 ether;
 
-    event Bridge(
-        uint256 indexed id,
-        uint256 amount,
-        address from,
-        bytes toAddress
-    );
+    event Bridge(uint256 indexed id, uint256 amount, address from, bytes toAddress);
 
     function setUp() public {
         token = new MockERC20();
@@ -140,15 +135,9 @@ contract BridgeTest is Test {
         bridge.setAllowedWithdrawer(withdrawer, true);
     }
 
-    event WithdrawalRequested(
-        uint256 indexed id,
-        uint256 amount,
-        address requester,
-        address to
-    );
+    event WithdrawalRequested(uint256 indexed id, uint256 amount, address requester, address to);
 
     function test_RequestWithdrawals() public {
-
         /* Test 0: Test single withdrawal request */
 
         address withdrawer0 = makeAddr("withdrawer0");
@@ -277,11 +266,7 @@ contract BridgeTest is Test {
         assertEq(storedTo, to);
     }
 
-    event WithdrawalApproved(
-        uint256 indexed id,
-        uint256 amount,
-        address to
-    );
+    event WithdrawalApproved(uint256 indexed id, uint256 amount, address to);
 
     function test_ApproveWithdrawal() public {
         address withdrawer = makeAddr("withdrawer");

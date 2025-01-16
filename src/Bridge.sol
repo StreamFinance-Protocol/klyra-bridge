@@ -1,4 +1,5 @@
 pragma solidity ^0.8.0;
+
 import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -17,25 +18,11 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         address to;
     }
 
-    event Bridge(
-        uint256 indexed id,
-        uint256 amount,
-        address from,
-        bytes toAddress
-    );
+    event Bridge(uint256 indexed id, uint256 amount, address from, bytes toAddress);
 
-    event WithdrawalRequested(
-        uint256 indexed id,
-        uint256 amount,
-        address requester,
-        address to
-    );
+    event WithdrawalRequested(uint256 indexed id, uint256 amount, address requester, address to);
 
-    event WithdrawalApproved(
-        uint256 indexed id,
-        uint256 amount,
-        address to
-    );
+    event WithdrawalApproved(uint256 indexed id, uint256 amount, address to);
 
     constructor(address _sdai, address[] memory _allowedWithdrawers) Ownable(msg.sender) {
         require(_sdai != address(0), "Invalid address");
@@ -47,10 +34,7 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         }
     }
 
-    function deposit(
-        uint256 amount,
-        bytes calldata toAddress
-    ) public nonReentrant {
+    function deposit(uint256 amount, bytes calldata toAddress) public nonReentrant {
         require(amount > 0, "Cannot bridge zero");
         require(toAddress.length != 0, "Invalid address");
 
@@ -59,32 +43,23 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         emit Bridge(currId++, amount, msg.sender, toAddress);
     }
 
-    function setAllowedWithdrawer(
-        address withdrawer,
-        bool allowed
-    ) public onlyOwner {
+    function setAllowedWithdrawer(address withdrawer, bool allowed) public onlyOwner {
         allowedWithdrawers[withdrawer] = allowed;
     }
 
-    function requestWithdrawals(
-        WithdrawalRequest[] calldata requests
-    ) public nonReentrant {
+    function requestWithdrawals(WithdrawalRequest[] calldata requests) public nonReentrant {
         for (uint256 i = 0; i < requests.length; i++) {
             _requestWithdrawal(requests[i]);
         }
     }
 
-    function approveWithdrawals(
-        uint256[] calldata ids
-    ) public onlyOwner nonReentrant {
+    function approveWithdrawals(uint256[] calldata ids) public onlyOwner nonReentrant {
         for (uint256 i = 0; i < ids.length; i++) {
             _approveWithdrawal(ids[i]);
         }
     }
 
-    function _requestWithdrawal(
-        WithdrawalRequest calldata request
-    ) internal {
+    function _requestWithdrawal(WithdrawalRequest calldata request) internal {
         require(allowedWithdrawers[msg.sender], "Not allowed to withdraw");
         require(request.amount > 0, "Cannot withdraw zero");
         require(request.to != address(0), "Zero address not allowed");
@@ -96,9 +71,7 @@ contract KlyraBridge is ReentrancyGuard, Ownable {
         nextWithdrawalId++;
     }
 
-    function _approveWithdrawal(
-        uint256 id
-    ) internal {
+    function _approveWithdrawal(uint256 id) internal {
         WithdrawalRequest memory request = withdrawalQueue[id];
         require(request.amount > 0, "Invalid withdrawal ID");
 
