@@ -49,8 +49,14 @@ In order to deposit, set the following environment variables:
 -   BRIDGE_ADDRESS (address of the bridge)
 
 Then, run the following command:
+For Eth Mainnet:
 ```
-forge script script/Deposit.s.sol --rpc-url $BASE_RPC_URL --broadcast
+forge script script/Deposit.s.sol:DepositScript --rpc-url $ETH_RPC_URL --broadcast
+```
+
+For Base Mainnet:
+```
+forge script script/Deposit.s.sol:DepositScript --rpc-url $BASE_RPC_URL --broadcast
 ```
 
 ## Requesting Withdrawals
@@ -61,6 +67,12 @@ In order to request withdrawals, set the following environment variables:
 -   WITHDRAW_REQUESTS (comma separated list of withdraw requests, each request is in the format of "address:amount", example: 0xf8D7136205e42D34b5ee918bDAABef21327b9B66:1,0x70e1b787A5D677a5906AccCF0B4F387b8Bb1B5C3:2)
 
 Then, run the following command:
+For Eth Mainnet:
+```
+forge script script/WithdrawRequest.s.sol:WithdrawRequestScript --rpc-url $ETH_RPC_URL --broadcast
+```
+
+For Base Mainnet:
 ```
 forge script script/WithdrawRequest.s.sol:WithdrawRequestScript --rpc-url $BASE_RPC_URL --broadcast
 ```
@@ -73,6 +85,12 @@ In order to approve withdrawals, set the following environment variables:
 -   APPROVE_IDS (comma separated list of withdraw request ids, example: 1,2)
 
 Then, run the following command:
+For Eth Mainnet:
+```
+forge script script/ApproveWithdrawal.s.sol:ApproveWithdrawalScript --rpc-url $ETH_RPC_URL --broadcast
+```
+
+For Base Mainnet:
 ```
 forge script script/ApproveWithdrawal.s.sol:ApproveWithdrawalScript --rpc-url $BASE_RPC_URL --broadcast
 ```

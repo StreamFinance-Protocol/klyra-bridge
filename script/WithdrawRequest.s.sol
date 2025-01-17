@@ -23,25 +23,22 @@ contract WithdrawRequestScript is Script {
 
         KlyraBridge.WithdrawalRequest[] memory withdrawRequests = new KlyraBridge.WithdrawalRequest[](count);
 
-        for (uint i = 0; i < count; i++) {
+        for (uint256 i = 0; i < count; i++) {
             strings.slice memory request = s.split(delim);
             strings.slice memory colonDelim = ":".toSlice();
-            
+
             require(request.count(colonDelim) == 1, "Invalid request format");
-            
+
             string memory addrStr = request.split(colonDelim).toString();
             string memory amountStr = request.toString();
-            
+
             address withdrawAddress = vm.parseAddress(addrStr);
             uint256 withdrawAmount = vm.parseUint(amountStr) * 1e18;
 
             require(withdrawAddress != address(0), "Invalid withdraw address");
             require(withdrawAmount > 0, "Invalid withdraw amount");
 
-            withdrawRequests[i] = KlyraBridge.WithdrawalRequest({
-                amount: withdrawAmount,
-                to: withdrawAddress
-            });
+            withdrawRequests[i] = KlyraBridge.WithdrawalRequest({amount: withdrawAmount, to: withdrawAddress});
         }
 
         vm.startBroadcast(withdrawerPrivateKey);
