@@ -16,6 +16,20 @@ SDAI_CONTRACT_ADDRESS=0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD
 #### Allowed withdrawer addresses
 ALLOWED_WITHDRAWERS=address1,address2,address3
 
+## Depositing
+In order to deposit, set the following environment variables:
+
+-   SDAI_CONTRACT_ADDRESS (should correspond to the address that is used by the contract)
+-   DEPOSIT_AMOUNT (amount of sDAI to deposit, 1 indicates 1 sDAI)
+-   TO_ADDRESS (Klyra chain destination address)
+-   ETH_RPC_URL/BASE_RPC_URL (RPC URL of the chain where the deposit is made)
+-   PRIVATE_KEY (private key of the depositor)
+
+Then, run the following command:
+```
+forge script script/Deposit.s.sol --rpc-url $BASE_RPC_URL --broadcast
+```
+
 ### Shell Commands
 
 To deploy on Eth Mainnet, run the following command:
