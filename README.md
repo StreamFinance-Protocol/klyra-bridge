@@ -16,20 +16,6 @@ SDAI_CONTRACT_ADDRESS=0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD
 #### Allowed withdrawer addresses
 ALLOWED_WITHDRAWERS=address1,address2,address3
 
-## Depositing
-In order to deposit, set the following environment variables:
-
--   SDAI_CONTRACT_ADDRESS (should correspond to the address that is used by the contract)
--   DEPOSIT_AMOUNT (amount of sDAI to deposit, 1 indicates 1 sDAI)
--   TO_ADDRESS (Klyra chain destination address)
--   ETH_RPC_URL/BASE_RPC_URL (RPC URL of the chain where the deposit is made)
--   PRIVATE_KEY (private key of the depositor)
-
-Then, run the following command:
-```
-forge script script/Deposit.s.sol --rpc-url $BASE_RPC_URL --broadcast
-```
-
 ### Shell Commands
 
 To deploy on Eth Mainnet, run the following command:
@@ -50,6 +36,33 @@ forge script script/Deploy.s.sol:DeployBridge \
     --verifier etherscan \
     --etherscan-api-key $BASESCAN_API_KEY \
     --verifier-url https://api.basescan.org/api
+```
+
+## Depositing
+In order to deposit, set the following environment variables:
+
+-   SDAI_CONTRACT_ADDRESS (should correspond to the address that is used by the contract)
+-   DEPOSIT_AMOUNT (amount of sDAI to deposit, 1 indicates 1 sDAI)
+-   TO_ADDRESS (Klyra chain destination address)
+-   ETH_RPC_URL/BASE_RPC_URL (RPC URL of the chain where the deposit is made)
+-   PRIVATE_KEY (private key of the depositor)
+-   BRIDGE_ADDRESS (address of the bridge)
+
+Then, run the following command:
+```
+forge script script/Deposit.s.sol --rpc-url $BASE_RPC_URL --broadcast
+```
+
+## Withdrawing
+In order to withdraw, set the following environment variables:
+
+-   PRIVATE_KEY (private key of the withdrawer)
+-   BRIDGE_ADDRESS (address of the bridge)
+-   WITHDRAW_REQUESTS (comma separated list of withdraw requests, each request is in the format of "address:amount", example: 0xf8D7136205e42D34b5ee918bDAABef21327b9B66:1,0x70e1b787A5D677a5906AccCF0B4F387b8Bb1B5C3:2)
+
+Then, run the following command:
+```
+forge script script/WithdrawRequest.s.sol:WithdrawRequestScript --rpc-url $BASE_RPC_URL --broadcast
 ```
 
 ## Foundry
