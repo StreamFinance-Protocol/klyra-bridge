@@ -53,8 +53,8 @@ Then, run the following command:
 forge script script/Deposit.s.sol --rpc-url $BASE_RPC_URL --broadcast
 ```
 
-## Withdrawing
-In order to withdraw, set the following environment variables:
+## Requesting Withdrawals
+In order to request withdrawals, set the following environment variables:
 
 -   PRIVATE_KEY (private key of the withdrawer)
 -   BRIDGE_ADDRESS (address of the bridge)
@@ -63,6 +63,18 @@ In order to withdraw, set the following environment variables:
 Then, run the following command:
 ```
 forge script script/WithdrawRequest.s.sol:WithdrawRequestScript --rpc-url $BASE_RPC_URL --broadcast
+```
+
+## Approving Withdrawals
+In order to approve withdrawals, set the following environment variables:
+
+-   PRIVATE_KEY (private key of the withdrawer)
+-   BRIDGE_ADDRESS (address of the bridge)
+-   APPROVE_IDS (comma separated list of withdraw request ids, example: 1,2)
+
+Then, run the following command:
+```
+forge script script/ApproveWithdrawal.s.sol:ApproveWithdrawalScript --rpc-url $BASE_RPC_URL --broadcast
 ```
 
 ## Foundry
