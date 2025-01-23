@@ -95,6 +95,29 @@ For Base Mainnet:
 forge script script/ApproveWithdrawal.s.sol:ApproveWithdrawalScript --rpc-url $BASE_RPC_URL --broadcast
 ```
 
+## Querying Withdrawals
+### Querying Next Withdrawal ID
+For Eth Mainnet:
+```
+forge script script/QueryWithdrawals.s.sol:QueryWithdrawalsScript --sig "queryNextWithdrawalId()" --rpc-url $ETH_RPC_URL -vvv
+```
+
+For Base Mainnet:
+```
+forge script script/QueryWithdrawals.s.sol:QueryWithdrawalsScript --sig "queryNextWithdrawalId()" --rpc-url $BASE_RPC_URL -vvv
+```
+### Querying Unapproved Withdrawals
+For Eth Mainnet:
+```
+forge script script/QueryWithdrawals.s.sol:QueryWithdrawalsScript --sig "queryUnapprovedWithdrawals()" --rpc-url $ETH_RPC_URL -vvv
+```
+
+For Base Mainnet:
+```
+forge script script/QueryWithdrawals.s.sol:QueryWithdrawalsScript --sig "queryUnapprovedWithdrawals()" --rpc-url $BASE_RPC_URL -vvv
+```
+
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
